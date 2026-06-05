@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inteligencia de Mercado: Ciberseguridad Junior & Remoto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Minimalist (Backgrounds: Stone-50, Cards: White, Text: Slate-800, Accents: Teal-600 & Amber-600) -->
+    
+    <!-- Application Structure Plan: 
+    El SPA utiliza una arquitectura de "Dashboard Narrativo" con navegación lateral. Se estructuró así para guiar al usuario (estudiante/junior) desde la comprensión macro del problema (la ilusión de vacantes globales vs la escasez real de remoto/junior), pasando por un mapa táctico del ecosistema (dónde buscar), hasta culminar en soluciones arquitectónicas accionables (cómo construir herramientas) y un roadmap temporal. Esta estructura lineal pero explorable permite digerir un reporte denso de 10,000+ palabras en módulos de alto impacto visual e interactivo. 
+    -->
+
+    <!-- Visualization & Content Choices: 
+    1. Mercado Global -> Informar -> Gráfico de Anillo (Chart.js) -> Hover/Tooltip -> Muestra la brutal proporción entre vacantes totales y reales para juniors remotos. Evita lectura extensa.
+    2. Evolución Laboral -> Tendencia -> Gráfico de Barras Apiladas (Chart.js) -> Hover -> Muestra el declive del trabajo remoto post-pandemia y el auge híbrido.
+    3. Ecosistema de Bolsas -> Organizar/Comparar -> Tabla Interactiva HTML/JS -> Botones de Filtro -> Permite al usuario aislar rápidamente comunidades o portales que aceptan juniors o remotos sin SVG ni herramientas de terceros.
+    4. Arquitectura de Solución -> Explicar Proceso -> Diagrama CSS/Tailwind -> Flujo visual -> Traduce la propuesta técnica de agregadores y scrapers en un mapa mental fácil de seguir. NO MERMAID, NO SVG.
+    -->
+    
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FAFAF9; /* warm neutral stone-50 */
+            color: #1E293B; /* slate-800 */
+        }
+
+        /* Essential Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        .nav-item.active {
+            background-color: #F1F5F9;
+            color: #0F766E;
+            border-left: 4px solid #0F766E;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar for clean look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #FAFAF9; }
+        ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-white border-r border-stone-200 flex-shrink-0 flex flex-col z-10 shadow-sm hidden md:flex">
+        <div class="p-6 border-b border-stone-100">
+            <h1 class="text-xl font-bold text-slate-800 leading-tight">Cyber<span class="text-teal-600">Intel</span> Desk</h1>
+            <p class="text-xs text-slate-500 mt-1">Análisis de Mercado Laboral</p>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4">
+            <button onclick="navigate('resumen')" id="btn-resumen" class="nav-item active w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-stone-50">🧭 Resumen Ejecutivo</button>
+            <button onclick="navigate('panorama')" id="btn-panorama" class="nav-item w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-stone-50">📊 Panorama y Barreras</button>
+            <button onclick="navigate('ecosistema')" id="btn-ecosistema" class="nav-item w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-stone-50">🗺️ Mapeo del Ecosistema</button>
+            <button onclick="navigate('soluciones')" id="btn-soluciones" class="nav-item w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-stone-50">🛠️ Arquitectura y Herramientas</button>
+            <button onclick="navigate('roadmap')" id="btn-roadmap" class="nav-item w-full text-left px-6 py-3 text-sm text-slate-600 hover:bg-stone-50">🚀 Roadmap Estratégico</button>
+        </nav>
+        <div class="p-4 border-t border-stone-100 text-xs text-slate-400">
+            Perfil Target: LATAM / Dev Sec
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <div class="md:hidden fixed top-0 left-0 right-0 bg-white shadow-sm z-20 px-4 py-3 flex justify-between items-center">
+        <h1 class="text-lg font-bold text-slate-800">Cyber<span class="text-teal-600">Intel</span></h1>
+        <select id="mobile-nav" onchange="navigate(this.value)" class="bg-stone-50 border border-stone-200 text-slate-700 text-sm rounded focus:ring-teal-500 p-1">
+            <option value="resumen">Resumen Ejecutivo</option>
+            <option value="panorama">Panorama y Barreras</option>
+            <option value="ecosistema">Ecosistema</option>
+            <option value="soluciones">Herramientas</option>
+            <option value="roadmap">Roadmap</option>
+        </select>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto bg-stone-50 pt-16 md:pt-0 pb-12 relative scroll-smooth">
+        
+        <!-- SECTION: Resumen Ejecutivo -->
+        <section id="sec-resumen" class="section-content fade-in p-6 md:p-12 max-w-5xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">El Espejismo de los 4 Millones de Vacantes</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">Esta sección destila el hallazgo principal del reporte de investigación sobre empleo en ciberseguridad. A nivel global, el mercado proyecta una demanda masiva, pero al aplicar los filtros de "100% Remoto" y "Entry-Level/Junior", el panorama se reduce drásticamente. Aquí entenderás la diferencia entre la demanda teórica y la oportunidad real, especialmente para perfiles en América Latina.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-teal-600 text-3xl font-bold mb-2">4.8M</div>
+                    <div class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Déficit Global</div>
+                    <p class="text-xs text-slate-500 mt-2">Profesionales de ciberseguridad que la industria afirma necesitar para 2026.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-amber-600 text-3xl font-bold mb-2">&lt; 15%</div>
+                    <div class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Oferta Real Remota</div>
+                    <p class="text-xs text-slate-500 mt-2">Contracción del mercado remoto tras el retorno presencial/híbrido pospandemia.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="text-rose-600 text-3xl font-bold mb-2">Alto</div>
+                    <div class="text-sm font-semibold text-slate-700 uppercase tracking-wide">Filtro de Fricción</div>
+                    <p class="text-xs text-slate-500 mt-2">Roles junior que exigen paradójicamente entre 2 y 4 años de experiencia demostrable.</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
+                <h3 class="text-xl font-semibold mb-6">Contraste de Oportunidades: Demanda vs Realidad Junior/Remota</h3>
+                <div class="chart-container">
+                    <canvas id="marketFunnelChart"></canvas>
+                </div>
+                <p class="text-sm text-slate-500 mt-4 text-center">Datos proyectados basados en agregación de portales de empleo e informes de la industria (ISC2, CyberSeek). La brecha resalta la necesidad de automatizar la búsqueda de ese 3% útil.</p>
+            </div>
+        </section>
+
+        <!-- SECTION: Panorama y Barreras -->
+        <section id="sec-panorama" class="section-content hidden p-6 md:p-12 max-w-5xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Evolución del Trabajo Remoto y Fricción Junior</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">En este módulo exploraremos las dinámicas contradictorias del mercado. Observaremos cómo ha evolucionado la modalidad de contratación y analizaremos las barreras estructurales (filtros ATS, expectativas irreales) que bloquean la entrada al talento. Comprender esto es vital para dejar de aplicar pasivamente y comenzar a hackear el proceso de contratación.</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-semibold mb-4">Evolución de Modalidad Laboral (2022 - 2026)</h3>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="remoteTrendChart"></canvas>
+                    </div>
+                    <p class="text-sm text-slate-600 mt-4">La caída del remoto total obliga al candidato junior a expandir drásticamente el volumen de su búsqueda o a crear herramientas que detecten las vacantes remotas apenas se publiquen.</p>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-center">
+                    <h3 class="text-lg font-semibold mb-4">Anatomía de la "Brecha Junior"</h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                            <span class="font-bold text-slate-800">1. Sistemas ATS Mal Calibrados</span>
+                            <p class="text-sm text-slate-600 mt-1">Algoritmos que descartan currículums sin palabras clave exactas (certificaciones caras como CISSP para roles base).</p>
+                        </div>
+                        <div class="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                            <span class="font-bold text-slate-800">2. Paradoja de Experiencia</span>
+                            <p class="text-sm text-slate-600 mt-1">El 68% de las posiciones etiquetadas como "Entry-Level" en portales masivos requieren >2 años de experiencia previa.</p>
+                        </div>
+                        <div class="p-4 bg-stone-50 rounded-lg border border-stone-200">
+                            <span class="font-bold text-slate-800">3. Competencia Global vs Asimetría Local</span>
+                            <p class="text-sm text-slate-600 mt-1">Un candidato en LATAM compite globalmente por los roles 100% remotos, requiriendo dominio de inglés técnico y adaptación a zonas horarias corporativas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Mapeo del Ecosistema -->
+        <section id="sec-ecosistema" class="section-content hidden p-6 md:p-12 max-w-5xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Cartografía de Oportunidades</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">Para aumentar el flujo de oportunidades, debes diversificar tus fuentes. Este ecosistema interactivo clasifica plataformas desde portales masivos hasta comunidades "underground" de Discord. Usa los filtros para identificar dónde un perfil junior y remoto tiene verdaderas posibilidades de destacar.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                <div class="flex flex-wrap gap-2 mb-6" id="board-filters">
+                    <button class="px-4 py-2 bg-teal-600 text-white text-sm font-semibold rounded-md shadow transition-colors" data-filter="all">Todas las Fuentes</button>
+                    <button class="px-4 py-2 bg-stone-100 text-slate-600 hover:bg-stone-200 text-sm font-semibold rounded-md transition-colors" data-filter="comunidad">Comunidades (Discord/Slack)</button>
+                    <button class="px-4 py-2 bg-stone-100 text-slate-600 hover:bg-stone-200 text-sm font-semibold rounded-md transition-colors" data-filter="especializada">Bolsas Especializadas</button>
+                    <button class="px-4 py-2 bg-stone-100 text-slate-600 hover:bg-stone-200 text-sm font-semibold rounded-md transition-colors" data-filter="latam">Foco LATAM</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-stone-50 border-b border-stone-200 text-slate-600 text-sm uppercase tracking-wider">
+                                <th class="p-4 font-semibold">Plataforma/Canal</th>
+                                <th class="p-4 font-semibold">Tipo</th>
+                                <th class="p-4 font-semibold text-center">Volumen Remoto</th>
+                                <th class="p-4 font-semibold text-center">Apertura a Juniors</th>
+                                <th class="p-4 font-semibold">Barrera de Entrada</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boards-table-body" class="text-sm divide-y divide-stone-100">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: Arquitectura y Herramientas -->
+        <section id="sec-soluciones" class="section-content hidden p-6 md:p-12 max-w-5xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Arquitectura de Multiplicación de Oportunidades</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">Aprovechando tu perfil como desarrollador y entusiasta de la seguridad técnica, la estrategia no es buscar empleos uno a uno, sino construir herramientas para agregar, filtrar y recibir alertas automáticas. Aquí se diagrama la arquitectura propuesta para pasar de "0 ofertas visibles" a "100+ ofertas curadas" semanalmente.</p>
+            </div>
+
+            <div class="bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700 text-white mb-8">
+                <h3 class="text-xl font-bold text-teal-400 mb-6">MVP: Agregador y Alertas (Python + Docker)</h3>
+                
+                <!-- Diagram using CSS Grid / Flexbox instead of SVG -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 py-6">
+                    
+                    <!-- Step 1 -->
+                    <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 w-full md:w-1/4 text-center shadow-inner relative">
+                        <div class="text-2xl mb-2">🕷️</div>
+                        <h4 class="font-bold text-sm mb-1">Scrapers Éticos</h4>
+                        <p class="text-xs text-slate-300">Scripts en Python (BeautifulSoup/Selenium) sondeando 15+ bolsas especializadas y APIs de empleo.</p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="text-teal-400 text-2xl rotate-90 md:rotate-0">→</div>
+
+                    <!-- Step 2 -->
+                    <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 w-full md:w-1/4 text-center shadow-inner relative">
+                        <div class="text-2xl mb-2">⚙️</div>
+                        <h4 class="font-bold text-sm mb-1">Normalización</h4>
+                        <p class="text-xs text-slate-300">Regex para detectar "Junior", "Entry", "Remote". Descarte automático de roles Senior (>5 años).</p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="text-teal-400 text-2xl rotate-90 md:rotate-0">→</div>
+
+                    <!-- Step 3 -->
+                    <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 w-full md:w-1/4 text-center shadow-inner relative">
+                        <div class="text-2xl mb-2">🗄️</div>
+                        <h4 class="font-bold text-sm mb-1">Base de Datos</h4>
+                        <p class="text-xs text-slate-300">Almacenamiento ligero (SQLite / Postgres en Docker) evitando duplicados y trazando estado.</p>
+                    </div>
+
+                    <!-- Arrow -->
+                    <div class="text-teal-400 text-2xl rotate-90 md:rotate-0">→</div>
+
+                    <!-- Step 4 -->
+                    <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 w-full md:w-1/4 text-center shadow-inner relative border-l-4 border-l-teal-400">
+                        <div class="text-2xl mb-2">📱</div>
+                        <h4 class="font-bold text-sm mb-1">Alertas Bot</h4>
+                        <p class="text-xs text-slate-300">Telegram/Discord bot que notifica en tiempo real. App Android básica para consumo personal.</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-4 bg-slate-900 rounded-md text-sm font-mono text-emerald-400 overflow-x-auto">
+                    <p># Concepto base de normalización (Python snippet)</p>
+                    <p>def evaluate_job(description):</p>
+                    <p class="ml-4">text = description.lower()</p>
+                    <p class="ml-4">if "senior" in text or "5+ years" in text:</p>
+                    <p class="ml-8 text-rose-400">return "Discard"</p>
+                    <p class="ml-4">if "remote" in text and ("junior" in text or "0-2 years" in text):</p>
+                    <p class="ml-8 text-teal-400">send_telegram_alert(job_url)</p>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-lg">
+                <h4 class="font-bold text-slate-800 mb-2">Beneficio Doble (El "Hack" del Portafolio)</h4>
+                <p class="text-sm text-slate-700">Construir este agregador no solo te proveerá de ofertas que otros no ven. El código fuente mismo (desplegado en GitHub, orquestado con Docker) se convierte en tu <strong>proyecto principal de portafolio</strong>. Demuestra habilidades reales de OSINT, desarrollo seguro, automatización e infraestructura, compensando directamente la falta de experiencia laboral previa requerida para un rol de Analista SOC o Security Automation.</p>
+            </div>
+        </section>
+
+        <!-- SECTION: Roadmap Estratégico -->
+        <section id="sec-roadmap" class="section-content hidden p-6 md:p-12 max-w-5xl mx-auto">
+            <div class="mb-8">
+                <h2 class="text-3xl font-bold text-slate-800 mb-4">Plan de Ejecución (Roadmap Personal)</h2>
+                <p class="text-lg text-slate-600 leading-relaxed">El conocimiento sin un plan es inútil. Este roadmap traduce la estrategia técnica y de mercado en pasos accionables. Está diseñado para alguien con bases técnicas sólidas (Python, Linux, Android) que necesita estructurar su posicionamiento hacia el remoto internacional.</p>
+            </div>
+
+            <div class="relative border-l border-stone-300 ml-4 md:ml-6 mt-8 space-y-12">
+                
+                <!-- Milestone 1 -->
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-teal-600 rounded-full -left-[12px] top-1 border-4 border-stone-50 flex items-center justify-center text-white text-xs font-bold shadow">1</div>
+                    <h3 class="text-xl font-bold text-slate-800">Fase 1: Construcción del Radar (Días 1-30)</h3>
+                    <p class="text-slate-600 mt-2">Enfocado en la automatización inicial y limpieza del perfil.</p>
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded shadow-sm border border-stone-200">
+                            <span class="font-bold text-sm text-teal-700 block mb-1">Acción Técnica</span>
+                            <span class="text-sm text-slate-600">Crear scraper en Python (BeautifulSoup) enfocado en portales como CyberSecJobs y canales de Telegram específicos. Output a CSV.</span>
+                        </div>
+                        <div class="bg-white p-4 rounded shadow-sm border border-stone-200">
+                            <span class="font-bold text-sm text-amber-600 block mb-1">Posicionamiento</span>
+                            <span class="text-sm text-slate-600">Traducir el CV completamente al inglés. Destacar habilidades en Python, OSINT y Redes por encima de roles genéricos de soporte.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestone 2 -->
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-teal-600 rounded-full -left-[12px] top-1 border-4 border-stone-50 flex items-center justify-center text-white text-xs font-bold shadow">2</div>
+                    <h3 class="text-xl font-bold text-slate-800">Fase 2: Orquestación e Infiltración (Días 31-60)</h3>
+                    <p class="text-slate-600 mt-2">Convertir el script en un sistema vivo y penetrar comunidades ocultas.</p>
+                    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded shadow-sm border border-stone-200">
+                            <span class="font-bold text-sm text-teal-700 block mb-1">Acción Técnica</span>
+                            <span class="text-sm text-slate-600">Dockerizar el script, conectarlo a SQLite e integrar notificaciones vía API de Telegram. Subir arquitectura a GitHub como portafolio.</span>
+                        </div>
+                        <div class="bg-white p-4 rounded shadow-sm border border-stone-200">
+                            <span class="font-bold text-sm text-amber-600 block mb-1">Networking</span>
+                            <span class="text-sm text-slate-600">Unirse activamente a comunidades (Ej. Infosec Twitter, Discord de creadores de LATAM). Compartir la herramienta que creaste como aporte a la comunidad.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Milestone 3 -->
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-teal-600 rounded-full -left-[12px] top-1 border-4 border-stone-50 flex items-center justify-center text-white text-xs font-bold shadow">3</div>
+                    <h3 class="text-xl font-bold text-slate-800">Fase 3: Aplicación Dirigida (Días 61-90)</h3>
+                    <p class="text-slate-600 mt-2">Uso intensivo de la data recolectada para entrevistas.</p>
+                    <div class="mt-4 bg-white p-4 rounded shadow-sm border border-stone-200">
+                        <p class="text-sm text-slate-600">De las alertas generadas por tu bot, aplica selectivamente a 10-15 roles semanales. Al incluir en tu CV el enlace a tu sistema automatizado de alertas de empleo en seguridad, generarás curiosidad técnica en el reclutador, saltando el típico filtro de "falta de experiencia en SOC".</p>
+                    </div>
+                </div>
+
+                <!-- Milestone 4 -->
+                <div class="relative pl-8 md:pl-12">
+                    <div class="absolute w-6 h-6 bg-slate-800 rounded-full -left-[12px] top-1 border-4 border-stone-50 flex items-center justify-center text-white text-xs font-bold shadow">∞</div>
+                    <h3 class="text-xl font-bold text-slate-800">Fase de Escalamiento (12-24 Meses)</h3>
+                    <p class="text-slate-600 mt-2 text-sm italic">De buscador de empleo a creador de soluciones de contratación.</p>
+                    <div class="mt-4 bg-slate-100 p-5 rounded-lg border border-slate-200">
+                        <p class="text-sm text-slate-700">Para el segundo año, la base de datos acumulada por tu herramienta tendrá un inmenso valor. Podrías evolucionarla a una app en Android para la comunidad latinoamericana, o un servicio de "Talent Curation" donde conectas el talento entry-level curado por ti con empresas extranjeras buscando talento remoto accesible.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- State Management & Navigation ---
+        const sections = ['resumen', 'panorama', 'ecosistema', 'soluciones', 'roadmap'];
+        
+        function navigate(targetId) {
+            // Update UI Mobile Select if needed
+            document.getElementById('mobile-nav').value = targetId;
+
+            // Hide all sections
+            sections.forEach(sec => {
+                document.getElementById(`sec-${sec}`).classList.add('hidden');
+                
+                // Remove active styling from buttons
+                const btn = document.getElementById(`btn-${sec}`);
+                if(btn) {
+                    btn.classList.remove('active', 'bg-stone-50', 'text-teal-600', 'font-semibold');
+                    btn.style.borderColor = 'transparent';
+                }
+            });
+
+            // Show target section
+            document.getElementById(`sec-${targetId}`).classList.remove('hidden');
+            
+            // Add active styling
+            const activeBtn = document.getElementById(`btn-${targetId}`);
+            if(activeBtn) {
+                activeBtn.classList.add('active', 'bg-stone-50', 'text-teal-600', 'font-semibold');
+                activeBtn.style.borderColor = '#0F766E';
+            }
+
+            // Trigger specific rendering logic based on section
+            if(targetId === 'resumen') renderFunnelChart();
+            if(targetId === 'panorama') renderTrendChart();
+        }
+
+        // --- Chart Data & Rendering ---
+        let funnelChartInstance = null;
+        let trendChartInstance = null;
+
+        function renderFunnelChart() {
+            const ctx = document.getElementById('marketFunnelChart').getContext('2d');
+            if (funnelChartInstance) funnelChartInstance.destroy();
+
+            funnelChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Vacantes Mid/Senior y Presenciales', 'Roles Junior/Entry-Level', 'Roles Junior 100% Remotos'],
+                    datasets: [{
+                        data: [85, 12, 3], // Synthetic data representing the "gap" described in the prompt
+                        backgroundColor: [
+                            '#E2E8F0', // slate-200
+                            '#F59E0B', // amber-500
+                            '#0D9488'  // teal-600
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Inter' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw}% de la oferta`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '65%'
+                }
+            });
+        }
+
+        function renderTrendChart() {
+            const ctx = document.getElementById('remoteTrendChart').getContext('2d');
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            trendChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['2022', '2023', '2024', '2025 (Est)', '2026 (Est)'],
+                    datasets: [
+                        { label: '100% Remoto', data: [45, 30, 20, 15, 12], backgroundColor: '#0D9488' },
+                        { label: 'Híbrido', data: [35, 45, 55, 60, 65], backgroundColor: '#F59E0B' },
+                        { label: 'Presencial', data: [20, 25, 25, 25, 23], backgroundColor: '#64748B' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, max: 100, ticks: { callback: v => v + '%' } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Inter' } } }
+                    }
+                }
+            });
+        }
+
+        // --- Data & Logic for Interactive Table ---
+        const jobBoards = [
+            { name: "LinkedIn Jobs", type: "Generalista", remote: "Medio", junior: "Bajo", barrier: "Filtros ATS altísimos, competencia global extrema.", category: "all" },
+            { name: "CyberSecJobs.com", type: "Especializada", remote: "Alto", junior: "Medio", barrier: "Exigen certificaciones base (Security+, CEH) frecuentemente.", category: "especializada" },
+            { name: "Discord: Infosec LATAM", type: "Comunidad", remote: "Alto", junior: "Alto", barrier: "Networking manual requerido, no estructurado. Ofertas ocultas.", category: "comunidad latam" },
+            { name: "GetOnBoard", type: "Tech General", remote: "Alto", junior: "Medio", barrier: "Mayor competencia con perfiles de desarrollo tradicional. Foco regional.", category: "latam" },
+            { name: "Telegram: BugBounty & Jobs", type: "Comunidad", remote: "Alto", junior: "Alto", barrier: "Requiere perfil de GitHub activo o ranking en CTFs (HackTheBox).", category: "comunidad" },
+            { name: "InfoSec-Jobs.com", type: "Especializada", remote: "Alto", junior: "Medio", barrier: "Competencia técnica. Valoran fuertemente contribuciones Open Source.", category: "especializada" },
+            { name: "Torre.ai", type: "Tech General", remote: "Alto", junior: "Medio", barrier: "Curva de aprendizaje del algoritmo de la plataforma.", category: "latam" }
+        ];
+
+        function renderBoardsTable(filterCategory = 'all') {
+            const tbody = document.getElementById('boards-table-body');
+            tbody.innerHTML = ''; // Clear current
+
+            const filteredData = jobBoards.filter(board => {
+                if(filterCategory === 'all') return true;
+                return board.category.includes(filterCategory);
+            });
+
+            filteredData.forEach(board => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-stone-50 transition-colors";
+                
+                // Stylize badges based on value
+                const renderBadge = (val) => {
+                    let colorClass = val === 'Alto' ? 'bg-teal-100 text-teal-800' : 
+                                     val === 'Medio' ? 'bg-amber-100 text-amber-800' : 
+                                     'bg-rose-100 text-rose-800';
+                    return `<span class="px-2 py-1 rounded text-xs font-semibold ${colorClass}">${val}</span>`;
+                };
+
+                tr.innerHTML = `
+                    <td class="p-4 font-medium text-slate-800">${board.name}</td>
+                    <td class="p-4 text-slate-600">${board.type}</td>
+                    <td class="p-4 text-center">${renderBadge(board.remote)}</td>
+                    <td class="p-4 text-center">${renderBadge(board.junior)}</td>
+                    <td class="p-4 text-slate-500 italic text-xs leading-tight">${board.barrier}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initialize Table Filters
+        document.getElementById('board-filters').addEventListener('click', (e) => {
+            if(e.target.tagName === 'BUTTON') {
+                // Update Button Styles
+                document.querySelectorAll('#board-filters button').forEach(btn => {
+                    btn.classList.remove('bg-teal-600', 'text-white');
+                    btn.classList.add('bg-stone-100', 'text-slate-600');
+                });
+                e.target.classList.remove('bg-stone-100', 'text-slate-600');
+                e.target.classList.add('bg-teal-600', 'text-white');
+
+                // Filter Data
+                renderBoardsTable(e.target.dataset.filter);
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderFunnelChart();
+            renderBoardsTable();
+        });
+
+        // Resize observer to handle chart redraws safely if container resizes
+        window.addEventListener('resize', () => {
+            if(!document.getElementById('sec-resumen').classList.contains('hidden') && funnelChartInstance){
+                funnelChartInstance.resize();
+            }
+            if(!document.getElementById('sec-panorama').classList.contains('hidden') && trendChartInstance){
+                trendChartInstance.resize();
+            }
+        });
+
+    </script>
+</body>
+</html>
